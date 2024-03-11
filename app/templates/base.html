@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+    <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
+    <script type="application/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.4.0/min/dropzone.min.js"></script>
+
+    <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.4.0/min/basic.min.css"/>
+    <link rel="stylesheet" href="static/styles.css">
+    <script type="application/javascript" src="static/index.js"></script>
+
+    {% if title %}
+        <title>{{ title }} - Emotion AI</title>
+    {% else %}
+        <title>Emotion - AI</title>
+    {% endif %}
+</head>
+<body>
+<header id="body-header">
+    {% block navbar_content %}
+    {% endblock %}
+</header>
+
+{% macro disp_message(message) %}
+    <li class="flashes d-flex-col just-cont-sp-even al-items-center fw-bold br-5p pd-0-5 mr-tb-0-15">{{ message }}</li>
+    <script>
+        slideFlashMessages();
+    </script>
+{% endmacro %}
+
+{% with messages = get_flashed_messages() %}
+    {% if messages %}
+        <ul class="wd-fill pd-lr-1-5 d-flex-col-stretch-wrap">
+        {% for message in messages %}
+            {{ disp_message(message) }}
+        {% endfor %}
+        </ul>
+    {% endif %}
+{% endwith %}
+
+<div id="container" class="d-flex-col-center">
+    {% block app_content %}
+    {% endblock %}
+</div>
+
+<footer id="body-footer">
+    {% block footer_content %}
+    {% endblock %}
+</footer>
+
+</body>
+</html>
