@@ -1,0 +1,7 @@
+{% extends "base.html" %}
+
+{% block app_content %}
+
+{{ dropzone.create(action=url_for("all.upload")) }}
+
+{% endblock %}

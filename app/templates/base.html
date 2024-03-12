@@ -10,7 +10,8 @@
 
     <link rel="stylesheet" href="https://unicons.iconscout.com/release/v4.0.0/css/line.css">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.4.0/min/basic.min.css"/>
+    {{ dropzone.load_css() }}
+    {{ dropzone.style('border: 2px dashed #0087F7; margin: 2rem; width: -webkit-fill-available; min-height: 20rem; self-align: centre;') }}
     <link rel="stylesheet" href="static/styles.css">
     <script type="application/javascript" src="static/index.js"></script>
 
@@ -52,6 +53,9 @@
     {% block footer_content %}
     {% endblock %}
 </footer>
+
+{{ dropzone.load_js() }}
+{{ dropzone.config() }}
 
 </body>
 </html>

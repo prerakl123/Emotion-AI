@@ -1,11 +1,13 @@
 {% extends "base.html" %}
 
 {% block app_content %}
-<div class="d-flex-col-start">
+<div class="d-flex-col-center">
     <h1>
         <span>Emotion </span>
         <span> - </span>
         <span> AI </span>
     </h1>
+
+    <a href="{{ url_for('all.upload') }}">Upload Videos</a>
 </div>
 {% endblock %}
