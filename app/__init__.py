@@ -1,9 +1,10 @@
-from flask import Flask
-
-from config import Config
-
-app = Flask(__name__)
-app.config.from_object(Config)
+from celery import Celery
 
 
-from app.routes import *
+def make_celery(app_name=__name__):
+    backend = "redis://localhost:6379/0"
+    broker = backend.replace("0", "1")
+    return Celery(app_name, backend=backend, broker=broker)
+
+
+celery = make_celery()
