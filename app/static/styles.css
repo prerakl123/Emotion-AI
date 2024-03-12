@@ -233,6 +233,10 @@ textarea:active, textarea:focus-visible {
     width: 15rem;
 }
 
+.ht-fill {
+    height: -webkit-fill-available;
+}
+
 .ht-0-5-rem {
     height: 0.5rem
 }

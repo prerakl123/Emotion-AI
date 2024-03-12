@@ -1,0 +1,11 @@
+Terminal 1:
+> sudo service redis-server restart
+
+Terminal 2:
+> celery -A celery_worker.celery worker --loglevel INFO --pool=solo
+
+Terminal 3:
+> python app.py
+
+
+NOTE: ALL INSIDE (venv)
