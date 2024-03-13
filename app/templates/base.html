@@ -55,7 +55,7 @@
 </footer>
 
 {{ dropzone.load_js() }}
-{{ dropzone.config() }}
+{{ dropzone.config(redirect_url=url_for('all.progress')) }}
 
 </body>
 </html>
