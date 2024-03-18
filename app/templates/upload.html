@@ -4,4 +4,20 @@
 
 {{ dropzone.create(action=url_for("all.upload")) }}
 
+<div class="d-flex wd-fill just-cont-sp-even">
+    <form action="" method="post">
+
+        {{ cas_form.hidden_tag() }}
+        <span class="mr-tb-0-5">{{ cas_form.submit() }}</span>
+
+    </form>
+
+    <form action="" method="post">
+
+        {{ cp_form.hidden_tag() }}
+        <span class="mr-tb-0-5">{{ cp_form.submit() }}</span>
+
+    </form>
+</div>
+
 {% endblock %}
