@@ -4,6 +4,7 @@ from flask import Blueprint, request, render_template, make_response, session
 
 from app.constants import DB_FOLDER
 from app.tasks import make_file
+from app.models import VideoData
 from app.video_parser import VideoParser
 
 bp = Blueprint("all", __name__)
@@ -39,14 +40,24 @@ def upload():
     """
     if request.method == 'POST':
         file = request.files['file']
-        video_file = VideoParser(file, db_folder=DB_FOLDER)
+        video_file = VideoParser(file)
+        ea = EmotionAnalyzer(video_file)
+        emotion_analysis_task_manager.add_task(ea)
 
-        if not session.get('upload_list'):
-            session.__setitem__("upload_list", [video_file.file_hash])
-        else:
-            session['upload_list'].append(video_file.file_hash)
+        session.__setitem__("latest_upload", video_file.file_hash)
 
-        return make_response(("File uploaded successfully!", 200))
+        print(session.get('latest_upload'))
+        sql_vd = VideoData(
+            file_hash=video_file.file_hash,
+            frames_processed=0,
+            total_frames=video_file.total_frames,
+            original_filename=video_file.video_file_path.name,
+            status="UNINITIALIZED"
+        )
+        sql_db.session.add(sql_vd)
+        sql_db.session.commit()
+
+        return make_response(("File Uploaded Successfully", 200))
 
     elif request.method == 'GET':
         return render_template('upload.html')
