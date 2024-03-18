@@ -1,11 +1,27 @@
-Terminal 1:
+1. Activate Virtual Environment
+> source venv/Scripts/activate
+# Also set environment variable FLASK_APP=application:app
+
+
+2. Start Redis Server
+Terminal-1:
 > sudo service redis-server restart
-
-Terminal 2:
-> celery -A celery_worker.celery worker --loglevel INFO --pool=solo
-
-Terminal 3:
-> python app.py
+> sudo service redis-server {start | stop | restart | force-reload | status}
 
 
-NOTE: ALL INSIDE (venv)
+3. Start Celery concurrency worker
+Terminal-2:
+> celery -A celery_worker.celery worker --loglevel INFO --concurrency 3 -E
+
+# Celery CMD Config:
+# pool=prefork  {prefork | threads | gevent | eventlet | solo}
+# concurrency=3,
+# task events=ON,
+# results=redis://localhost:6379/0
+# transport=redis://localhost:6379/1
+# loglevel=INFO  {DEBUG | INFO | WARNING | ERROR | CRITICAL}
+
+
+4. Run the Flask App
+Terminal-3:
+> python3 application.py
