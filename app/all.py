@@ -1,21 +1,13 @@
-import os
+from flask import Blueprint, request, render_template, session, make_response, redirect, url_for
 
-from flask import Blueprint, request, render_template, make_response, session
-
-from app.constants import DB_FOLDER
-from app.tasks import make_file
+from app.factory import sql_db, emotion_analysis_task_manager
+from app.forms import ConfigureAnalysisSettingsForm, ConfigurePeopleForm
 from app.models import VideoData
+from app.video_parser import EmotionAnalyzer
 from app.video_parser import VideoParser
 
 bp = Blueprint("all", __name__)
 "Global blueprint for all routes starting with /"
-
-
-@bp.route("/<string:fname>/<string:content>")
-def makefile(fname, content):
-    fpath = os.path.join(os.path.dirname(os.path.abspath(__file__)), fname)
-    make_file.delay(fpath, content)
-    return f"Find your file @ <code>{fpath}</code>"
 
 
 @bp.route('/', methods=['GET', 'POST'])
@@ -38,6 +30,15 @@ def upload():
         GET  : rendered HTML template `upload.html`.
         POST : (response message, response integer).
     """
+    cas_form = ConfigureAnalysisSettingsForm()
+    cp_form = ConfigurePeopleForm()
+
+    if cas_form.validate_on_submit():
+        return redirect(url_for("all.analysis_settings"))
+
+    if cp_form.validate_on_submit():
+        return redirect(url_for("all.people_config"))
+
     if request.method == 'POST':
         file = request.files['file']
         video_file = VideoParser(file)
@@ -60,7 +61,7 @@ def upload():
         return make_response(("File Uploaded Successfully", 200))
 
     elif request.method == 'GET':
-        return render_template('upload.html')
+        return render_template('upload.html', cas_form=cas_form, cp_form=cp_form)
 
 
 @bp.route('/progress', methods=['GET', 'POST'])
@@ -71,3 +72,12 @@ def progress():
     :return: rendered HTML template `progress.html`
     """
     return render_template('progress.html')
+
+
+# for job_id, arg in [
+#     ("job_done", "DONE"),
+#     ("job_proc", "PROCESSING"),
+#     ("job_uninit", "UNINITIALIZED"),
+#     ("job_fail", "FAILED")
+# ]:
+#     scheduler.add_job(id=job_id, trigger="interval", func=get_file_by_status, args=[arg], seconds=5)

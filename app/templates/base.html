@@ -15,6 +15,9 @@
     <link rel="stylesheet" href="static/styles.css">
     <script type="application/javascript" src="static/index.js"></script>
 
+    {% block head_config %}
+    {% endblock %}
+
     {% if title %}
         <title>{{ title }} - Emotion AI</title>
     {% else %}
@@ -55,7 +58,8 @@
 </footer>
 
 {{ dropzone.load_js() }}
-{{ dropzone.config(redirect_url=url_for('all.progress')) }}
+{# dropzone.config(redirect_url=url_for('all.progress')) #}
+{{ dropzone.config() }}
 
 </body>
 </html>

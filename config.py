@@ -1,4 +1,8 @@
 import os
+from datetime import timedelta
+
+basedir = os.path.abspath(os.path.dirname(__file__))
+print(basedir)
 
 
 class Config:
@@ -6,6 +10,11 @@ class Config:
 
     SECRET_KEY = os.environ.get('FLASK_SECRET_KEY')
     "Secret Key for Flask for CSRF tokens"
+    PERMANENT_SESSION_LIFETIME = timedelta(minutes=20)
+    "Browser session lifetime"
+
+    SQLALCHEMY_DATABASE_URI = 'sqlite:///' + basedir + '/db/analysis.db'
+    "Database URI"
 
     DROPZONE_MAX_FILE_SIZE = 1 * 1000
     "Default max upload file size: 1 GB"

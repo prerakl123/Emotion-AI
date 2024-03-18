@@ -65,3 +65,8 @@ def create_app(app_name=PKG_NAME, **kwargs):
         scheduler.start()
 
     return app
+
+
+from app.ea_tasks import EmotionAnalysisTaskManager
+emotion_analysis_task_manager = EmotionAnalysisTaskManager()
+"Emotion Analysis Task Manager"

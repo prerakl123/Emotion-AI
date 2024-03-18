@@ -1,11 +1,18 @@
+import base64
+import json
 import os
 import secrets
 import sqlite3
 from pathlib import Path
+from typing import Sequence
 
 import cv2
+from cv2.data import haarcascades
 from numpy import ndarray
 from werkzeug.datastructures import FileStorage
+
+hcc = cv2.CascadeClassifier(haarcascades + 'haarcascade_frontalface_default.xml')
+"Haarcascade Classifier for face detection."
 
 
 class VideoParser:
@@ -14,6 +21,7 @@ class VideoParser:
     video_file_path: Path
     total_frames: int
     original_fps: int
+    dimensions: int
     video_db: Path
 
     def __init__(
@@ -27,7 +35,12 @@ class VideoParser:
         self.file_hash = self._set_file_hash()
         self.video_dir = self._init_video_dir(db_folder)
         self.video_file_path = self._save_original_video(file)
-        self.total_frames, self.original_fps = self._get_frame_fps()
+
+        self._cap = cv2.VideoCapture(str(self.video_file_path))
+
+        (self.total_frames,
+         self.original_fps,
+         self.dimensions) = self._get_props()
 
         self._init_config_files(self.video_dir)
         self._init_video_analysis_db(self.video_dir)
@@ -96,22 +109,68 @@ class VideoParser:
         file.save(ovf_name)
         return ovf_name
 
-    def _get_frame_fps(self) -> tuple[int, int]:
-        cap = cv2.VideoCapture(str(self.video_file_path))
-        length = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
-        fps = int(cap.get(cv2.CAP_PROP_FPS))
-        cap.release()
-        return length, fps
+    def _get_props(self) -> tuple[int, int, tuple[int, int]]:
+        length = int(self._cap.get(cv2.CAP_PROP_FRAME_COUNT))
+        fps = int(self._cap.get(cv2.CAP_PROP_FPS))
+        width = int(self._cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        height = int(self._cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        return length, fps, (height, width)
 
-    def get_frame(self, frame_number: int) -> bytes:
-        cap = cv2.VideoCapture(str(self.video_file_path))
-        cap.set(1, frame_number)
-        ret, frame = cap.read()
+    def create_subdir(self, name: str) -> Path:
+        os.makedirs(self.video_dir / name, exist_ok=True)
+        return self.video_dir / name
+
+    def get_frame_bytes_by_index(self, frame_number: int, to_b64: bool = False) -> bytes:
+        self._cap.set(cv2.CAP_PROP_POS_FRAMES, frame_number)
+        ret, frame = self._cap.read()
         if ret is None:
             raise KeyError(
                 "Invalid Frame number: ", frame_number,
                 "\nTotal Frame count of video is: ", self.total_frames
             )
-        _, img = cv2.imencode('.jpg', frame[:, :, ::-1])
+
+        _, img = cv2.imencode('.jpg', cv2.cvtColor(frame, cv2.COLOR_BGR2RGB))
         buffer = img.tobytes()
+
+        self.reset_cap()
+
+        if to_b64:
+            return base64.b64encode(buffer)
+
         return buffer
+
+    def get_frame_np_by_index(self, frame_number: int) -> ndarray:
+        self._cap.set(cv2.CAP_PROP_POS_FRAMES, frame_number)
+        ret, frame = self._cap.read()
+        if ret is None:
+            raise KeyError(
+                "Invalid Frame number: ", frame_number,
+                "\nTotal Frame count of video is: ", self.total_frames
+            )
+
+        return cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+
+    def read(self) -> tuple[bool, ndarray]:
+        return self._cap.read()
+
+    def reset_cap(self) -> None:
+        self._cap.release()
+        self._cap = cv2.VideoCapture(str(self.video_file_path))
+
+    @classmethod
+    def convert_to(cls, frame: ndarray, code: int, **config) -> ndarray:
+        return cv2.cvtColor(src=frame, code=code, **config)
+
+    @classmethod
+    def find_faces(
+            cls, frame: ndarray,
+            scale_factor: float = 1.2,
+            min_neighbors: int = 6,
+            min_size: tuple = (100, 100)
+    ) -> Sequence[Sequence[int]]:
+        return hcc.detectMultiScale(
+            image=frame,
+            scaleFactor=scale_factor,
+            minNeighbors=min_neighbors,
+            minSize=min_size
+        )
