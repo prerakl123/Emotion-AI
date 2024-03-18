@@ -1,4 +1,8 @@
 from celery import Celery
+from kombu import serialization
+
+serialization.register_pickle()
+serialization.enable_insecure_serializers()
 
 
 def make_celery(app_name=__name__):
@@ -10,7 +14,14 @@ def make_celery(app_name=__name__):
     """
     backend = "redis://localhost:6379/0"
     broker = backend.replace("0", "1")
-    return Celery(app_name, backend=backend, broker=broker)
+    return Celery(
+        app_name,
+        backend=backend,
+        broker=broker,
+        task_serializer='pickle',
+        result_serializer='pickle',
+        accept_content=['pickle', 'application/x-python-serialize']
+    )
 
 
 celery = make_celery()
