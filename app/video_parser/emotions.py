@@ -57,9 +57,12 @@ class EmotionParser:
 
     def is_same(self, face1: ndarray, face2: ndarray) -> bool:
         try:
-            result = self.compare(face1, face2)['verified']
+            result = self.compare(face1, face2, expand_percentage=10)['verified']
         except ValueError:
+            print("NO FACE")
             result = False
+
+        print("SAME:", result)
 
         return result
 
@@ -75,11 +78,12 @@ class EmotionAnalyzer(EmotionParser):
         EmotionParser.__init__(self, video)
         self.video = video
         self.running = True
+        self.current_frame = 0
         self.status = 'UNINITIALIZED'
         self.unique_faces = self.load_images(*self.get_unique_faces_filenames())
 
     def __repr__(self) -> str:
-        return f"<EmotionAnalyzer hash='{self.video.file_hash}'>"
+        return f"<EmotionAnalyzer hash='{self.video.file_hash}' status='{self.status}'>"
 
     def reset(self):
         self.current_frame = 0
@@ -92,6 +96,7 @@ class EmotionAnalyzer(EmotionParser):
         ID of the unique person found.
         """
         self.status = 'PROCESSING'
+        print("SEGREGATION")
 
         start_time = time.time()
         while self.running and self.status == 'PROCESSING':
@@ -101,15 +106,17 @@ class EmotionAnalyzer(EmotionParser):
             for (x, y, w, h) in detected_faces:
                 df = frame[y:y+h, x:x+w]
 
+                if self.unique_faces.__len__() < 1:
+                    self.unique_faces.append(df)
+                    self.save_image(df, filename="person_0.jpg")
+
                 for uf in self.unique_faces:
                     if not self.is_same(df, uf):
                         self.unique_faces.append(df)
+                        self.save_image(df, filename=f"person_{len(self.unique_faces) - 1}.jpg")
 
             if self.current_frame == self.video.total_frames:
                 self.running = False
-
-        for i, img in enumerate(self.unique_faces):
-            self.save_image(img, filename=f"person_{i}.jpg")
 
         self.step += 1
 

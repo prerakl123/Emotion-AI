@@ -1,15 +1,18 @@
 import base64
+import io
 import json
 import os
 import secrets
 import sqlite3
 from pathlib import Path
-from typing import Sequence
+from typing import Sequence, BinaryIO
 
 import cv2
 from cv2.data import haarcascades
 from numpy import ndarray
 from werkzeug.datastructures import FileStorage
+
+from app.constants import DB_FOLDER
 
 hcc = cv2.CascadeClassifier(haarcascades + 'haarcascade_frontalface_default.xml')
 "Haarcascade Classifier for face detection."
@@ -174,3 +177,25 @@ class VideoParser:
             minNeighbors=min_neighbors,
             minSize=min_size
         )
+
+    @classmethod
+    def get_image_from_hash_index(
+            cls, file_hash: str,
+            img_index: int,
+            db_path: str = None,
+            to_b64: bool = True
+    ) -> bytes or BinaryIO:
+
+        if db_path is None:
+            db_path = f"{DB_FOLDER}{file_hash}/unique_faces"
+
+        person = cv2.imread(
+            Path(f"{db_path}/person_{img_index}.jpg")
+            .as_posix()
+        )
+        person_b = person.tobytes()
+
+        if to_b64:
+            return base64.b64encode(person_b)
+
+        return io.BytesIO(person_b)
