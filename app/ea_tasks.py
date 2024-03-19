@@ -16,10 +16,20 @@ class EmotionAnalysisTaskManager:
     def add_task(self, task: EmotionAnalyzer) -> None:
         self.tasks.append(task)
 
-    def get_tasks(self, index: int = None) -> list[EmotionAnalyzer] or EmotionAnalyzer:
-        if index is not None:
-            return self.tasks[index]
-        return self.tasks
+    def get_task(self, index: int = None) -> EmotionAnalyzer:
+        if index is None:
+            index = 0
+        return self.tasks[index]
+
+    def get_tasks(self, start: int = 0, stop: int = 10) -> list[EmotionAnalyzer] or EmotionAnalyzer or None:
+        try:
+            result = self.tasks[start:stop]
+            if not result:
+                result = None
+        except IndexError:
+            result = None
+
+        return result
 
     def handle_done_task(self, task: EmotionAnalyzer) -> None:
         set_status(self.app, task.video.file_hash, 'PROCESSING')
@@ -47,7 +57,7 @@ class EmotionAnalysisTaskManager:
 
     def update(self) -> None:
         tasks: list[EmotionAnalyzer] = self.get_tasks()
-        if len(tasks) < 1:
+        if tasks is None:
             return
 
         for task in tasks:
