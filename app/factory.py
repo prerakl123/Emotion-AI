@@ -60,7 +60,7 @@ def create_app(app_name=PKG_NAME, **kwargs):
             id="update_ea_tasks",
             trigger="interval",
             func=emotion_analysis_task_manager.update,
-            seconds=60
+            seconds=25
         )
         scheduler.start()
 
