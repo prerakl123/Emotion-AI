@@ -1,5 +1,47 @@
 {% extends "base.html" %}
 
+{% block head_config %}
+
+    <meta http-equiv="refresh" content="20">
+
+{% endblock %}
+
 {% block app_content %}
+
+<div class="d-flex-col-center wd-fill">
+    {% if tasks is none %}
+        <p>Nothing to show. All tasks completed!</p>
+
+    {% else %}
+        {% for task in tasks %}
+            {% set unique_faces_filenames = task.get_unique_faces_filenames() %}
+
+            <div class="d-flex-col-center mr-0-5 br-5p ht-5-rem wd-fill">
+                {% if task.status == 'UNINITIALIZED' %}
+
+                    {% if task.step == 0 %}
+                        <p>Waiting for previous tasks to complete...</p>
+
+                    {% elif task.step == 1 %}
+
+                        {% for i in range(len(unique_faces_filenames)) %}
+
+                            <div class="d-flex-col-stretch-wrap">
+                                <img src="image/jpeg;base64,{{ task.video.get_image_from_hash_index(task.video.file_hash, i, task.video.video_dir, True) }}" alt="person-{{ i }}.jpg">
+                                <p>Person - {{ i }}</p>
+                            </div>
+
+                        {% endfor %}
+
+                    {% endif %}
+
+                {% endif %}
+            </div>
+
+        {% endfor %}
+
+    {% endif %}
+
+</div>
 
 {% endblock %}
